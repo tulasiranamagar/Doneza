@@ -31,6 +31,12 @@ const getTasks = async (req, res) => {
             $options: "i",
           },
         },
+        {
+          category: {
+            $regex: search,
+            $options: "i",
+          },
+        },
       ];
     }
 
@@ -70,12 +76,38 @@ const getTaskStats = async (req, res) => {
   try {
     const userId = req.user.userId;
 
-    const [total, pending, inProgress, completed] = await Promise.all([
-      Task.countDocuments({ user: userId }),
-      Task.countDocuments({ user: userId, status: "pending" }),
-      Task.countDocuments({ user: userId, status: "in-progress" }),
-      Task.countDocuments({ user: userId, status: "completed" }),
-    ]);
+    const now = new Date();
+
+    const startOfToday = new Date(now);
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const startOfTomorrow = new Date(startOfToday);
+    startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
+
+    const [total, pending, inProgress, completed, important, overdue, dueToday] =
+      await Promise.all([
+        Task.countDocuments({ user: userId }),
+        Task.countDocuments({ user: userId, status: "pending" }),
+        Task.countDocuments({ user: userId, status: "in-progress" }),
+        Task.countDocuments({ user: userId, status: "completed" }),
+        Task.countDocuments({ user: userId, isImportant: true }),
+        Task.countDocuments({
+          user: userId,
+          status: { $ne: "completed" },
+          dueDate: { $lt: startOfToday, $ne: null },
+        }),
+        Task.countDocuments({
+          user: userId,
+          status: { $ne: "completed" },
+          dueDate: {
+            $gte: startOfToday,
+            $lt: startOfTomorrow,
+          },
+        }),
+      ]);
+
+    const completionRate =
+      total === 0 ? 0 : Math.round((completed / total) * 100);
 
     res.status(200).json({
       success: true,
@@ -84,6 +116,10 @@ const getTaskStats = async (req, res) => {
         pending,
         inProgress,
         completed,
+        important,
+        overdue,
+        dueToday,
+        completionRate,
       },
     });
   } catch (error) {
@@ -103,6 +139,8 @@ const createTask = async (req, res) => {
       description,
       status,
       priority,
+      category,
+      isImportant,
       dueDate,
     } = req.body;
 
@@ -121,6 +159,8 @@ const createTask = async (req, res) => {
       description,
       status,
       priority,
+      category,
+      isImportant,
       dueDate,
       image,
       imageId,
@@ -196,6 +236,8 @@ const updateTask = async (req, res) => {
       "description",
       "status",
       "priority",
+      "category",
+      "isImportant",
       "dueDate",
     ];
 

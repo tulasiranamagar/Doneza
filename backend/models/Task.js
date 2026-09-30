@@ -45,6 +45,17 @@ const taskSchema = new mongoose.Schema(
       default: "medium",
     },
 
+    category: {
+      type: String,
+      enum: ["Study", "Work", "Personal", "Project", "Other"],
+      default: "Other",
+    },
+
+    isImportant: {
+      type: Boolean,
+      default: false,
+    },
+
     dueDate: {
       type: Date,
       default: null,

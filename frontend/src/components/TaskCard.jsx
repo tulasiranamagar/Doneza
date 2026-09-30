@@ -5,7 +5,9 @@ import {
   FiCheckCircle,
   FiClock,
   FiEdit3,
+  FiFlag,
   FiLoader,
+  FiTag,
   FiTrash2,
 } from "react-icons/fi";
 
@@ -18,6 +20,42 @@ function TaskCard({ task, onDelete, deletingId }) {
       day: "numeric",
       year: "numeric",
     });
+  };
+
+  const getDueDateState = (date) => {
+    if (!date || task.status === "completed") {
+      return "normal";
+    }
+
+    const dueDate = new Date(date);
+    const today = new Date();
+
+    today.setHours(0, 0, 0, 0);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+
+    if (dueDate < today) {
+      return "overdue";
+    }
+
+    if (dueDate >= today && dueDate < tomorrow) {
+      return "today";
+    }
+
+    return "normal";
+  };
+
+  const getDueDateStyle = (state) => {
+    if (state === "overdue") {
+      return "text-rose-300";
+    }
+
+    if (state === "today") {
+      return "text-amber-300";
+    }
+
+    return "text-slate-500";
   };
 
   const getPriorityStyle = (priority) => {
@@ -51,6 +89,8 @@ function TaskCard({ task, onDelete, deletingId }) {
 
     return status.charAt(0).toUpperCase() + status.slice(1);
   };
+
+  const dueDateState = getDueDateState(task.dueDate);
 
   const StatusIcon =
     task.status === "completed"
@@ -88,12 +128,27 @@ function TaskCard({ task, onDelete, deletingId }) {
               {task.title}
             </h3>
 
+            {task.isImportant && (
+              <span
+                className="inline-flex items-center gap-1 rounded-full border border-amber-400/20 bg-amber-500/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-300"
+                title="Important task"
+              >
+                <FiFlag size={11} />
+                Important
+              </span>
+            )}
+
             <span
               className={`rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${getPriorityStyle(
                 task.priority
               )}`}
             >
               {task.priority}
+            </span>
+
+            <span className="inline-flex items-center gap-1 rounded-full border border-violet-400/20 bg-violet-500/10 px-2.5 py-1 text-[10px] font-bold text-violet-300">
+              <FiTag size={11} />
+              {task.category || "Other"}
             </span>
 
             <span
@@ -111,10 +166,19 @@ function TaskCard({ task, onDelete, deletingId }) {
             </p>
           )}
 
-          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-500">
-            <span className="inline-flex items-center gap-1.5">
-              <FiCalendar size={14} className="text-violet-400" />
-              {formatDate(task.dueDate)}
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
+            <span
+              className={`inline-flex items-center gap-1.5 ${getDueDateStyle(
+                dueDateState
+              )}`}
+            >
+              <FiCalendar size={14} />
+
+              {dueDateState === "overdue"
+                ? `Overdue · ${formatDate(task.dueDate)}`
+                : dueDateState === "today"
+                ? "Due today"
+                : formatDate(task.dueDate)}
             </span>
 
             {task.image && (

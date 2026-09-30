@@ -1,5 +1,7 @@
 const { body } = require("express-validator");
 
+const categories = ["Study", "Work", "Personal", "Project", "Other"];
+
 const createTaskValidator = [
   body("title")
     .trim()
@@ -23,6 +25,16 @@ const createTaskValidator = [
     .optional()
     .isIn(["low", "medium", "high"])
     .withMessage("Invalid task priority"),
+
+  body("category")
+    .optional()
+    .isIn(categories)
+    .withMessage("Invalid task category"),
+
+  body("isImportant")
+    .optional()
+    .isBoolean()
+    .withMessage("Important status must be true or false"),
 
   body("dueDate")
     .optional({ nullable: true })
@@ -53,6 +65,16 @@ const updateTaskValidator = [
     .isIn(["low", "medium", "high"])
     .withMessage("Invalid task priority"),
 
+  body("category")
+    .optional()
+    .isIn(categories)
+    .withMessage("Invalid task category"),
+
+  body("isImportant")
+    .optional()
+    .isBoolean()
+    .withMessage("Important status must be true or false"),
+
   body("dueDate")
     .optional({ nullable: true })
     .isISO8601()
@@ -72,3 +94,4 @@ module.exports = {
   updateTaskValidator,
   statusValidator,
 };
+

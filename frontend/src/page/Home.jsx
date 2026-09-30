@@ -2,13 +2,16 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   FiAlertCircle,
+  FiCalendar,
   FiCheckCircle,
   FiClock,
+  FiFlag,
   FiList,
   FiLoader,
   FiPlus,
   FiRefreshCw,
   FiSearch,
+  FiTarget,
 } from "react-icons/fi";
 import { toast } from "react-hot-toast";
 import { useSelector } from "react-redux";
@@ -25,6 +28,10 @@ function Home() {
     pending: 0,
     inProgress: 0,
     completed: 0,
+    important: 0,
+    overdue: 0,
+    dueToday: 0,
+    completionRate: 0,
   });
 
   const [loading, setLoading] = useState(true);
@@ -47,7 +54,6 @@ function Home() {
       setStatsLoading(true);
 
       const response = await api.get("/tasks/stats");
-
       const data = response.data.data;
 
       setStats({
@@ -55,6 +61,10 @@ function Home() {
         pending: data.pending || 0,
         inProgress: data.inProgress || 0,
         completed: data.completed || 0,
+        important: data.important || 0,
+        overdue: data.overdue || 0,
+        dueToday: data.dueToday || 0,
+        completionRate: data.completionRate || 0,
       });
     } catch (error) {
       const message =
@@ -80,13 +90,11 @@ function Home() {
         params.set("search", search.trim());
       }
 
-      const response = await api.get(
-        `/tasks?${params.toString()}`
-      );
-
+      const response = await api.get(`/tasks?${params.toString()}`);
       const data = response.data.data;
 
       setTasks(data.tasks || []);
+
       setPagination(
         data.pagination || {
           page: 1,
@@ -208,6 +216,37 @@ function Home() {
     },
   ];
 
+  const productivityCards = [
+    {
+      label: "Important",
+      value: stats.important,
+      icon: FiFlag,
+      iconStyle: "bg-amber-500/10 text-amber-300",
+      hoverStyle: "hover:border-amber-400/20",
+    },
+    {
+      label: "Due Today",
+      value: stats.dueToday,
+      icon: FiCalendar,
+      iconStyle: "bg-blue-500/10 text-blue-300",
+      hoverStyle: "hover:border-blue-400/20",
+    },
+    {
+      label: "Overdue",
+      value: stats.overdue,
+      icon: FiAlertCircle,
+      iconStyle: "bg-rose-500/10 text-rose-300",
+      hoverStyle: "hover:border-rose-400/20",
+    },
+    {
+      label: "Completion Rate",
+      value: `${stats.completionRate}%`,
+      icon: FiTarget,
+      iconStyle: "bg-emerald-500/10 text-emerald-300",
+      hoverStyle: "hover:border-emerald-400/20",
+    },
+  ];
+
   return (
     <div className="min-h-[calc(100vh-4rem)] overflow-hidden bg-slate-950 text-slate-100">
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
@@ -219,8 +258,7 @@ function Home() {
       <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-violet-400/20 
-              bg-violet-400/10 px-3 py-1.5 text-xs font-semibold text-violet-300">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-violet-400/20 bg-violet-400/10 px-3 py-1.5 text-xs font-semibold text-violet-300">
               <FiList size={14} />
               Personal Workspace
             </div>
@@ -238,9 +276,7 @@ function Home() {
 
           <Link
             to="/tasks/create"
-            className="group inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r 
-            from-violet-600 to-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-900/20 
-            transition duration-300 hover:-translate-y-0.5 hover:from-violet-500 hover:to-indigo-500"
+            className="group inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-900/20 transition duration-300 hover:-translate-y-0.5 hover:from-violet-500 hover:to-indigo-500"
           >
             <FiPlus
               size={18}
@@ -261,8 +297,7 @@ function Home() {
             }) => (
               <div
                 key={label}
-                className={`group rounded-2xl border border-white/10 bg-white/[0.04] p-5 shadow-xl 
-                  shadow-black/10 backdrop-blur-xl transition duration-300 hover:-translate-y-1 ${hoverStyle}`}
+                className={`group rounded-2xl border border-white/10 bg-white/[0.04] p-5 shadow-xl shadow-black/10 backdrop-blur-xl transition duration-300 hover:-translate-y-1 ${hoverStyle}`}
               >
                 <div className="flex items-center justify-between">
                   <div
@@ -289,6 +324,72 @@ function Home() {
               </div>
             )
           )}
+        </div>
+
+        <div className="mb-8 rounded-3xl border border-white/10 bg-white/[0.04] p-5 shadow-2xl shadow-black/30 backdrop-blur-xl sm:p-6">
+          <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-violet-400">
+                Productivity
+              </p>
+
+              <h2 className="mt-2 text-xl font-bold text-white">
+                Your progress overview
+              </h2>
+
+              <p className="mt-1 text-sm text-slate-500">
+                A quick look at the tasks that need your attention.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-3 py-2">
+              <FiTarget size={15} className="text-emerald-300" />
+
+              <span className="text-xs font-semibold text-emerald-300">
+                {stats.completionRate}% completed
+              </span>
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {productivityCards.map(
+              ({
+                label,
+                value,
+                icon: Icon,
+                iconStyle,
+                hoverStyle,
+              }) => (
+                <div
+                  key={label}
+                  className={`group rounded-2xl border border-white/10 bg-white/[0.025] p-4 transition duration-300 hover:-translate-y-0.5 ${hoverStyle}`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div
+                      className={`flex h-9 w-9 items-center justify-center rounded-xl ${iconStyle}`}
+                    >
+                      <Icon size={17} />
+                    </div>
+
+                    <span className="text-lg font-bold text-white">
+                      {statsLoading ? (
+                        <FiLoader
+                          size={17}
+                          className="animate-spin text-slate-500"
+                        />
+                      ) : (
+                        value
+                      )}
+                    </span>
+                  </div>
+
+                  <p className="mt-3 text-xs font-medium text-slate-500">
+                    {label}
+                  </p>
+                </div>
+              )
+            )}
+          </div>
         </div>
 
         <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-2xl shadow-black/30 backdrop-blur-xl">
@@ -322,9 +423,7 @@ function Home() {
                     value={search}
                     onChange={handleSearchChange}
                     placeholder="Search your tasks..."
-                    className="w-full rounded-xl border border-white/10 bg-white/5 py-3 pl-11 pr-4 text-sm 
-                    text-white outline-none transition duration-300 placeholder:text-slate-600 focus:border-violet-400/40 
-                    focus:bg-violet-500/5 focus:ring-4 focus:ring-violet-500/10"
+                    className="w-full rounded-xl border border-white/10 bg-white/5 py-3 pl-11 pr-4 text-sm text-white outline-none transition duration-300 placeholder:text-slate-600 focus:border-violet-400/40 focus:bg-violet-500/5 focus:ring-4 focus:ring-violet-500/10"
                   />
                 </div>
               </div>
@@ -360,8 +459,7 @@ function Home() {
 
           {loading && (
             <div className="flex min-h-72 items-center justify-center">
-              <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 
-              px-5 py-4 text-sm font-medium text-slate-400 shadow-xl backdrop-blur-xl">
+              <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-sm font-medium text-slate-400 shadow-xl backdrop-blur-xl">
                 <FiLoader
                   size={20}
                   className="animate-spin text-violet-400"
@@ -373,8 +471,7 @@ function Home() {
 
           {!loading && filteredTasks.length === 0 && (
             <div className="flex min-h-80 flex-col items-center justify-center px-6 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl 
-              border border-violet-400/20 bg-violet-500/10 text-violet-400">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-violet-400/20 bg-violet-500/10 text-violet-400">
                 <FiCheckCircle size={28} />
               </div>
 
@@ -383,7 +480,11 @@ function Home() {
                   ? "No tasks found"
                   : filter === "all"
                   ? "No tasks yet"
-                  : `No ${filter === "in-progress" ? "in progress" : filter} tasks`}
+                  : `No ${
+                      filter === "in-progress"
+                        ? "in progress"
+                        : filter
+                    } tasks`}
               </h3>
 
               <p className="mt-2 max-w-md text-sm leading-6 text-slate-500">
@@ -397,9 +498,7 @@ function Home() {
               {tasks.length === 0 && !search && (
                 <Link
                   to="/tasks/create"
-                  className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r 
-                  from-violet-600 to-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg 
-                  shadow-violet-900/20 transition duration-300 hover:-translate-y-0.5 hover:from-violet-500 hover:to-indigo-500"
+                  className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-900/20 transition duration-300 hover:-translate-y-0.5 hover:from-violet-500 hover:to-indigo-500"
                 >
                   <FiPlus size={17} />
                   Create your first task
@@ -421,8 +520,7 @@ function Home() {
                 ))}
               </div>
 
-              <div className="flex flex-col gap-4 border-t border-white/10 px-5 py-5 
-              sm:flex-row sm:items-center sm:justify-between sm:px-6">
+              <div className="flex flex-col gap-4 border-t border-white/10 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                 <p className="text-xs text-slate-500">
                   Page {pagination.page} of{" "}
                   {pagination.totalPages || 1}
@@ -439,9 +537,7 @@ function Home() {
                       )
                     }
                     disabled={page === 1 || loading}
-                    className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs 
-                    font-semibold text-slate-400 transition hover:border-white/20 hover:bg-white/10 hover:text-slate-200 
-                    disabled:cursor-not-allowed disabled:opacity-40"
+                    className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-slate-400 transition hover:border-white/20 hover:bg-white/10 hover:text-slate-200 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     Previous
                   </button>
@@ -452,8 +548,7 @@ function Home() {
                       setPage((current) => current + 1)
                     }
                     disabled={!pagination.hasMore || loading}
-                    className="rounded-xl border border-violet-400/20 bg-violet-500/10 px-4 py-2 text-xs 
-                    font-semibold text-violet-300 transition hover:bg-violet-500/20 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="rounded-xl border border-violet-400/20 bg-violet-500/10 px-4 py-2 text-xs font-semibold text-violet-300 transition hover:bg-violet-500/20 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     Next
                   </button>
@@ -471,8 +566,7 @@ function Home() {
                   setSearch("");
                   setPage(1);
                 }}
-                className="mx-auto flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-xs 
-                font-semibold text-slate-400 transition hover:border-violet-400/20 hover:bg-violet-500/10 hover:text-violet-300"
+                className="mx-auto flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-xs font-semibold text-slate-400 transition hover:border-violet-400/20 hover:bg-violet-500/10 hover:text-violet-300"
               >
                 <FiRefreshCw size={15} />
                 Reset task view
