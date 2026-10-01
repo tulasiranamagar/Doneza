@@ -76,41 +76,6 @@ Doneza is a full-stack task management application built with the MERN stack. It
 * Multer
 * Cloudinary
 
-# Project Structure
-
-DONEZA/
-│
-├── backend/
-│   ├── config/
-│   ├── controllers/
-│   ├── middleware/
-│   ├── models/
-│   ├── routes/
-│   ├── utils/
-│   ├── validators/
-│   ├── .env
-│   ├── server.js
-│   └── package.json
-│
-├── frontend/
-│   ├── src/
-│   │   ├── assets/
-│   │   ├── components/
-│   │   ├── page/
-│   │   ├── utils/
-│   │   ├── App.jsx
-│   │   ├── App.css
-│   │   ├── index.css
-│   │   ├── LayOut.jsx
-│   │   └── main.jsx
-│   ├── public/
-│   ├── package.json
-│   └── vite.config.js
-│
-├── .gitignore
-└── README.md
-
-
 # API Endpoints
 
 # Authentication
