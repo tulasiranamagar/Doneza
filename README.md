@@ -146,9 +146,6 @@ SMTP_PASS=your_email_password
 
 FRONTEND_URL=http://localhost:5173
 
-
-Never commit the `.env` file to GitHub.
-
 # Installation
 
 1. Clone the repository
